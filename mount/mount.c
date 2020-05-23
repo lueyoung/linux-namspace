@@ -5,6 +5,7 @@
 #include <sched.h>
 #include <signal.h>
 #include <unistd.h>
+#include <sys/mount.h>
 
 #define STACK_SZIE (1024*1024)
 
@@ -17,17 +18,8 @@ char* const child_args[] = {
 int child_main(void* args){
     printf("in child process!\n");
     sethostname("NewNamespace", 12);
-    char* mount_point = "/proc";
-    mkdir(mount_point, 0555);
-    if (mount("proc", mount_point, "proc", 0, NULL) == -1){
-        printf("error when mount!\n");
-    }
-    pid_t pid = fork();
-    if (pid == 0) {
-        execv(child_args[0], child_args);
-    } else {
-        wait(NULL);
-    }
+    mount("none", "/", NULL, MS_REC | MS_PRIVATE, NULL);
+    execv(child_args[0], child_args);
     return 0;
 }
 
